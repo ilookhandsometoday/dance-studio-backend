@@ -83,6 +83,70 @@ async def all_sessions(request: web.Request):
 
     return web.json_response(response, status=200)
 
+@router.post('/sign_up_for_session')
+async def sign_for_session(request:web.Request):
+    connection_pool = request.app['ps_connection_pool']
+
+    body = await request.json()
+    session_id = body.get('session_id')
+    uid = body.get('uid')
+
+    await db.sign_up_for_session(connection_pool, user_id=uid, session_id=session_id)
+    return web.Response(status=200)
+
+
+@router.post('/unsign_from_session')
+async def unsign_for_session(request: web.Request):
+    connection_pool = request.app['ps_connection_pool']
+
+    body = await request.json()
+    session_id = int(body.get('session_id'))
+    uid = int(body.get('uid'))
+
+    await db.unsign_from_session(connection_pool, session_id = session_id, user_id=uid)
+
+    return web.Response(status=200)
+
+
+@router.get('/instructors')
+async def get_instructors(request: web.Request):
+    connection_pool = request.app['ps_connection_pool']
+    result = await db.get_instructors(connection_pool)
+    response = utils.generate_response(1, 'Instructor list returned')
+    response['data'].update({'instructors': []})
+    for instructor in result:
+        response['data']['instructors'].append({
+            'firstname': instructor['firstname'],
+            'lastname': instructor['lastname'],
+            'info': instructor['info'],
+            'spec': instructor['spec_name']
+        })
+
+    return web.json_response(response, status=200)
+
+@router.post('/sessions_by_uid')
+async def get_sessions_by_uid(request: web.Request):
+    body = await request.json()
+    uid = int(body.get('uid'))
+    connection_pool = request.app['ps_connection_pool']
+    result = await db.get_sessions_by_user(connection_pool, uid)
+    response = utils.generate_response(1, 'Session list returned')
+    response['data'].update({'sessions': []})
+    for session in result:
+        specializations = await db.get_instructor_specs(connection_pool, session['instructor_id'])
+        response['data']['sessions'].append({
+            'session_id': session['session_id'],
+            'session_start': session['session_start'],
+            'session_place': session['session_place'],
+            'session_name': session['session_name'],
+            'capacity': session['capacity'],
+            'signed_up': session['signed_up'],
+            'firstname': session['firstname'],
+            'lastname': session['lastname'],
+            'specialization': [record['spec_name'] for record in specializations]
+        })
+
+    return web.json_response(response, status=200)
 
 @router.get('/ping')
 async def ping(request: web.Request):

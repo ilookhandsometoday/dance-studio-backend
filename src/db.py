@@ -49,17 +49,31 @@ async def get_instructor_specs(connection_pool: asyncpg.Pool, instructor_id: int
                                           f"inner join public.instructors_specs on public.specializations.spec_id = public.instructors_specs.spec_id "
                                           f"where public.instructors_specs.instructor_id = {instructor_id};")
 
+async def get_instructors(connection_pool: asyncpg.Pool):
+    async with connection_pool.acquire() as connection:
+        async with connection.transaction():
+            return await connection.fetch(f"select spec_name, firstname, lastname, info "
+                                          f"from public.specializations "
+                                          f"inner join public.instructors_specs on public.specializations.spec_id = public.instructors_specs.spec_id "
+                                          f"inner join public.instructors on public.instructors.instructor_id = public.instructors_specs.instructor_id;")
+
+
 async def get_sessions_by_user(connection_pool: asyncpg.Pool, user_id: int):
     async with connection_pool.acquire() as connection:
         async with connection.transaction():
-            return await connection.fetch(f'SELECT public.sessions.session_id, session_start, session_place, session_name, capacity, signed_up, firstname, lastname '
+            return await connection.fetch(f'SELECT public.sessions.session_id, session_start, session_place, session_name, capacity, signed_up, firstname, lastname, info, public.instructors.instructor_id '
                                           f'FROM public.sessions '
                                           f'inner join public.users_sessions us on public.sessions.session_id = us.session_id '
                                           f'inner join public.instructors_sessions on public.sessions.session_id = public.instructors_sessions.session_id '
                                           f'inner join public.instructors on public.instructors_sessions.instructor_id = public.instructors.instructor_id '
                                           f'where us.user_id = {user_id};')
 
-async def sign_up_for_session(connection_pool: asyncpg.Pool, user_id: int):
+async def sign_up_for_session(connection_pool: asyncpg.Pool, user_id: int, session_id: int):
     async with connection_pool.acquire() as connection:
         async with connection.transaction():
-            await connection.fetch(f'insert ')
+            await connection.fetch(f'insert into public.users_sessions(user_id, session_id) values({user_id}, {session_id});')
+
+async def unsign_from_session(connection_pool: asyncpg.Pool, user_id: int, session_id: int):
+    async with connection_pool.acquire() as connection:
+        async with connection.transaction():
+            await connection.execute(f'delete from public.users_sessions where user_id = {user_id} and session_id = {session_id}')
