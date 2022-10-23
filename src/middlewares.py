@@ -4,7 +4,7 @@ from aiohttp import web
 from utils import generate_response
 from db_wrapper import DbWrapper
 
-async def is_token_valid(user_id, token_to_compare, connection_pool: asyncpg.Pool):
+async def is_token_valid(user_id, token_to_compare):
     token_from_db = await DbWrapper.get_token(user_id)
     tkn = token_from_db['tkn']
     return token_to_compare == tkn
@@ -48,7 +48,7 @@ async def validation_middleware(request: web.Request, handler):
        return web.Response(body='Access denied', status=403)
     else:
         user_id = int(headers.get('X-User-Id'))
-        token_valid = await is_token_valid(user_id, received_token, connection_pool)
+        token_valid = await is_token_valid(user_id, received_token)
         if token_valid:
             return await handler(request)
         else:
