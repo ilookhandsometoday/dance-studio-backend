@@ -11,7 +11,7 @@ async def on_startup(app: web.Application):
     pass
 
 async def on_shutdown(app: web.Application):
-    DbWrapper.cleanup()
+    await DbWrapper.cleanup()
 
 def init_app():
     host, port, postgres_conn = get_config()

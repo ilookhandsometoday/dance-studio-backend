@@ -8,8 +8,8 @@ class DbWrapper(object, metaclass=SingletonMeta):
         cls._pool = await asyncpg.create_pool(conn_str)
 
     @classmethod
-    def cleanup(cls):
-        cls._pool.close()
+    async def cleanup(cls):
+        await cls._pool.close()
 
     @classmethod
     async def get_user_data_by_email(cls, email: str):
