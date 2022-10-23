@@ -1,11 +1,11 @@
 import asyncpg
-import db
 import logging
 from aiohttp import web
 from utils import generate_response
+from db_wrapper import DbWrapper
 
 async def is_token_valid(user_id, token_to_compare, connection_pool: asyncpg.Pool):
-    token_from_db = await db.get_token(connection_pool, user_id)
+    token_from_db = await DbWrapper.get_token(user_id)
     tkn = token_from_db['tkn']
     return token_to_compare == tkn
 
