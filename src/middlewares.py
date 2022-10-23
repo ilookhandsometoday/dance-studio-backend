@@ -47,7 +47,6 @@ async def validation_middleware(request: web.Request, handler):
     if request_path not in endpoints.get(token_type):
        return web.Response(body='Access denied', status=403)
     else:
-        connection_pool = request.app['ps_connection_pool']
         user_id = int(headers.get('X-User-Id'))
         token_valid = await is_token_valid(user_id, received_token, connection_pool)
         if token_valid:
