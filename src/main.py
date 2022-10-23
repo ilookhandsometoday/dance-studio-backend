@@ -33,4 +33,4 @@ if __name__ == '__main__':
     loop = asyncio.get_event_loop()
     app, host, port, postgres_conn = init_app()
     loop.run_until_complete(DbWrapper.prepare(postgres_conn))
-    web.run_app(app, host=host, port=port)
+    web.run_app(app, host=host, port=port, loop=loop)
