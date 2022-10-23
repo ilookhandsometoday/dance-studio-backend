@@ -37,7 +37,6 @@ async def sign_up(request: web.Request):
     mail: str = body.get('email')
     password: str = body.get('password')
     pw_hash = hashlib.sha256(password.encode('utf-8')).hexdigest()
-    connection_pool = request.app['ps_connection_pool']
     try:
         user_by_email = await DbWrapper.get_user_data_by_email(mail)
         if user_by_email:
@@ -62,7 +61,6 @@ async def sign_up(request: web.Request):
 
 @router.get('/sessions')
 async def all_sessions(request: web.Request):
-    connection_pool = request.app['ps_connection_pool']
     result = await DbWrapper.get_all_sessions()
     response = utils.generate_response(1, 'Session list returned')
     response['data'].update({'sessions':[]})
@@ -84,8 +82,6 @@ async def all_sessions(request: web.Request):
 
 @router.post('/sign_up_for_session')
 async def sign_for_session(request:web.Request):
-    connection_pool = request.app['ps_connection_pool']
-
     body = await request.json()
     session_id = body.get('session_id')
     uid = body.get('uid')
@@ -96,7 +92,6 @@ async def sign_for_session(request:web.Request):
 
 @router.post('/unsign_from_session')
 async def unsign_for_session(request: web.Request):
-    connection_pool = request.app['ps_connection_pool']
 
     body = await request.json()
     session_id = int(body.get('session_id'))
@@ -109,7 +104,6 @@ async def unsign_for_session(request: web.Request):
 
 @router.get('/instructors')
 async def get_instructors(request: web.Request):
-    connection_pool = request.app['ps_connection_pool']
     result = await DbWrapper.get_instructors()
     response = utils.generate_response(1, 'Instructor list returned')
     response['data'].update({'instructors': []})
@@ -127,7 +121,6 @@ async def get_instructors(request: web.Request):
 async def get_sessions_by_uid(request: web.Request):
     body = await request.json()
     uid = int(body.get('uid'))
-    connection_pool = request.app['ps_connection_pool']
     result = await DbWrapper.get_sessions_by_user(uid)
     response = utils.generate_response(1, 'Session list returned')
     response['data'].update({'sessions': []})
