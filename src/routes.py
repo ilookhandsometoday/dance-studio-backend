@@ -15,7 +15,7 @@ async def sign_in(request: web.Request):
     email: str = body.get('email')
     password: str = body.get('password')
     hash = hashlib.sha256(password.encode('UTF-8')).hexdigest()
-    user_data = await DbWrapper.get_user_data_by_email(email)
+    user_data = await DbWrapper().get_user_data_by_email(email)
     if not user_data:
         return web.json_response(utils.generate_response(0, 'No account with such email'), status=403)
 
@@ -24,7 +24,7 @@ async def sign_in(request: web.Request):
 
     # TODO send token
     response = utils.generate_response(1, 'Authorization_successful')
-    token = await DbWrapper.get_token( user_data['user_id'])
+    token = await DbWrapper().get_token( user_data['user_id'])
     response['data'].update({'token': token['tkn'], 'timestamp': token['timestamp'], 'lifetime': token['lifetime']})
     return web.json_response(response, status=200)
 
@@ -38,17 +38,17 @@ async def sign_up(request: web.Request):
     password: str = body.get('password')
     pw_hash = hashlib.sha256(password.encode('utf-8')).hexdigest()
     try:
-        user_by_email = await DbWrapper.get_user_data_by_email(mail)
+        user_by_email = await DbWrapper().get_user_data_by_email(mail)
         if user_by_email:
             return web.json_response(utils.generate_response(0, 'Account already exists'))
 
-        user_insert_result = await DbWrapper.insert_user(firstname=firstname, lastname=lastname, email=mail, password_hash=pw_hash, timestamp=int(time.time()))
+        user_insert_result = await DbWrapper().insert_user(firstname=firstname, lastname=lastname, email=mail, password_hash=pw_hash, timestamp=int(time.time()))
         # this is here because sometimes it's possible for two identical requests happening at the same time
         # causing an error due to none being inserted, as insert_user returns none because in another instance of this
         # handler being run it has already been added
         if user_insert_result:
             token = utils.generate_token()
-            await DbWrapper.insert_token(user_insert_result, token, int(time.time()), 0)
+            await DbWrapper().insert_token(user_insert_result, token, int(time.time()), 0)
             return web.json_response(utils.generate_response(1, 'Account created successfully'))
         else:
             return web.json_response(utils.generate_response(0, 'Account already exists'))
@@ -61,11 +61,11 @@ async def sign_up(request: web.Request):
 
 @router.get('/sessions')
 async def all_sessions(request: web.Request):
-    result = await DbWrapper.get_all_sessions()
+    result = await DbWrapper().get_all_sessions()
     response = utils.generate_response(1, 'Session list returned')
     response['data'].update({'sessions':[]})
     for session in result:
-        specializations = await DbWrapper.get_instructor_specs(session['instructor_id'])
+        specializations = await DbWrapper().get_instructor_specs(session['instructor_id'])
         response['data']['sessions'].append({
             'session_id': session['session_id'],
             'session_start': session['session_start'],
@@ -86,7 +86,7 @@ async def sign_for_session(request:web.Request):
     session_id = body.get('session_id')
     uid = body.get('uid')
 
-    await DbWrapper.sign_up_for_session(user_id=uid, session_id=session_id)
+    await DbWrapper().sign_up_for_session(user_id=uid, session_id=session_id)
     return web.Response(status=200)
 
 
@@ -97,14 +97,14 @@ async def unsign_for_session(request: web.Request):
     session_id = int(body.get('session_id'))
     uid = int(body.get('uid'))
 
-    await DbWrapper.unsign_from_session(session_id = session_id, user_id=uid)
+    await DbWrapper().unsign_from_session(session_id = session_id, user_id=uid)
 
     return web.Response(status=200)
 
 
 @router.get('/instructors')
 async def get_instructors(request: web.Request):
-    result = await DbWrapper.get_instructors()
+    result = await DbWrapper().get_instructors()
     response = utils.generate_response(1, 'Instructor list returned')
     response['data'].update({'instructors': []})
     for instructor in result:
@@ -121,11 +121,11 @@ async def get_instructors(request: web.Request):
 async def get_sessions_by_uid(request: web.Request):
     body = await request.json()
     uid = int(body.get('uid'))
-    result = await DbWrapper.get_sessions_by_user(uid)
+    result = await DbWrapper().get_sessions_by_user(uid)
     response = utils.generate_response(1, 'Session list returned')
     response['data'].update({'sessions': []})
     for session in result:
-        specializations = await DbWrapper.get_instructor_specs(session['instructor_id'])
+        specializations = await DbWrapper().get_instructor_specs(session['instructor_id'])
         response['data']['sessions'].append({
             'session_id': session['session_id'],
             'session_start': session['session_start'],
@@ -150,7 +150,7 @@ async def delete_notification_link(request: web.Request):
     user_id = body['user_id']
     notification_id = body['notification_id']
     try:
-        await DbWrapper.unbind_notification( int(user_id), int(notification_id))
+        await DbWrapper().unbind_notification( int(user_id), int(notification_id))
     except Exception as e:
         logger.exception('Exception during delete_notification_link:')
         response = utils.generate_response(0, 'Failed to delete notification link')

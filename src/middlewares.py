@@ -5,7 +5,7 @@ from utils import generate_response
 from db_wrapper import DbWrapper
 
 async def is_token_valid(user_id, token_to_compare):
-    token_from_db = await DbWrapper.get_token(user_id)
+    token_from_db = await DbWrapper().get_token(user_id)
     tkn = token_from_db['tkn']
     return token_to_compare == tkn
 
