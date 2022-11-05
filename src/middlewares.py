@@ -10,7 +10,9 @@ async def is_token_valid(user_id, token_to_compare):
     return token_to_compare == tkn
 
 # define endpoints that can be used only by app or only by ust tokens exclusively
-endpoints = {'app': ['/sign_up', '/sign_in'], 'ust': ['/unsign_from_session', '/sign_up_for_session'], 'adm': []}
+endpoints = {'app': ['/sign_up', '/sign_in'],
+             'ust': ['/unsign_from_session', '/sign_up_for_session', '/get_notifications_by_uid', '/delete_notification_link'],
+             'adm': []}
 
 # define endpoints that can be used by both of the tokens
 routes_both_tokens = ['/sessions', '/instructors', '/sessions_by_uid']

@@ -84,7 +84,7 @@ async def all_sessions(request: web.Request):
 async def sign_for_session(request:web.Request):
     body = await request.json()
     session_id = body.get('session_id')
-    uid = body.get('uid')
+    uid = request.headers.get('X-User-Id')
 
     await DbWrapper().sign_up_for_session(user_id=uid, session_id=session_id)
     return web.Response(status=200)
@@ -95,7 +95,7 @@ async def unsign_for_session(request: web.Request):
 
     body = await request.json()
     session_id = int(body.get('session_id'))
-    uid = int(body.get('uid'))
+    uid = request.headers['X-User-Id']
 
     await DbWrapper().unsign_from_session(session_id = session_id, user_id=uid)
 
@@ -120,7 +120,7 @@ async def get_instructors(request: web.Request):
 @router.post('/sessions_by_uid')
 async def get_sessions_by_uid(request: web.Request):
     body = await request.json()
-    uid = int(body.get('uid'))
+    uid = int(request.headers['X-User-Id'])
     result = await DbWrapper().get_sessions_by_user(uid)
     response = utils.generate_response(1, 'Session list returned')
     response['data'].update({'sessions': []})
@@ -142,8 +142,9 @@ async def get_sessions_by_uid(request: web.Request):
 
 @router.get('/get_notifications_by_uid')
 async def get_notifications_by_uid(request: web.Request):
-    ...
-
+    body = await request.json()
+    uid = request.headers['X-User-Id']
+    notifications = await DbWrapper().get_notification_by_user_id(user_id)
 @router.delete('/delete_notification_link')
 async def delete_notification_link(request: web.Request):
     body = await request.json()

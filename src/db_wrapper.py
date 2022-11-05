@@ -105,5 +105,7 @@ class DbWrapper(object, metaclass=SingletonMeta):
         await cls._pool.execute(
                     f"delete from notifications_users where user_id = '{user_id}' and notification_id = '{notification_id}';")
     @classmethod
-    async def get_notification_by_user_id(cls):
-        ...
+    async def get_notification_by_user_id(cls, user_id: int):
+        result = await cls._pool.fetch(f"select * from notifications n inner join notifications_users nu on "
+                                       f"nu.notification_id = n.notification_id where user_id = {user_id};")
+        return result
