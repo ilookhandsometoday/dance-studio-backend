@@ -2,6 +2,7 @@ import hashlib
 import time
 import utils
 import asyncpg
+import asyncpg.exceptions as asyncpg_exc
 from config import logger
 from aiohttp import web
 from db_wrapper import DbWrapper
@@ -86,8 +87,14 @@ async def sign_for_session(request:web.Request):
     session_id = body.get('session_id')
     uid = request.headers.get('X-User-Id')
 
-    await DbWrapper().sign_up_for_session(user_id=uid, session_id=session_id)
-    return web.Response(status=200)
+    try:
+        await DbWrapper().sign_up_for_session(user_id=uid, session_id=session_id)
+    except asyncpg_exc.UniqueViolationError as e:
+        return web.json_response(utils.generate_response(0, 'Double signup attempt'), status=400)
+    except Exception as e:
+        return web.json_response(utils.generate_response(0, f'Something went wrong. {e}'), status=500)
+
+    return web.json_response(utils.generate_response(1, 'Success'), status=200)
 
 
 @router.post('/unsign_from_session')
@@ -145,6 +152,7 @@ async def get_notifications_by_uid(request: web.Request):
     body = await request.json()
     uid = request.headers['X-User-Id']
     notifications = await DbWrapper().get_notification_by_user_id(user_id)
+
 @router.delete('/delete_notification_link')
 async def delete_notification_link(request: web.Request):
     body = await request.json()
