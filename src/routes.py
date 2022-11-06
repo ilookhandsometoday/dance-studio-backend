@@ -158,7 +158,7 @@ async def get_notifications_by_uid(request: web.Request):
             'text': notification['text']
         }
         data.append(notification_data)
-    response = generate_response(1, 'Success')
+    response = utils.generate_response(1, 'Success')
     response['data'] = data
     return web.json_response(data, status=200)
 
