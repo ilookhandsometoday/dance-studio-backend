@@ -109,7 +109,8 @@ class DbWrapper(object, metaclass=SingletonMeta):
     @classmethod
     async def get_notifications_by_user_id(cls, user_id: int):
         result = await cls._pool.fetch(f"select * from notifications n inner join notifications_users nu on "
-                                       f"nu.user_id = n.user_id where user_id = {user_id} and sent = FALSE;")
+                                       f"nu.notification_id = n.notification_id inner join users u on nu.user_id = u.user_id "
+                                       f"where user_id = {user_id} and sent = FALSE;")
         return result
 
     @classmethod
