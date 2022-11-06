@@ -151,15 +151,26 @@ async def get_sessions_by_uid(request: web.Request):
 async def get_notifications_by_uid(request: web.Request):
     body = await request.json()
     uid = request.headers['X-User-Id']
-    notifications = await DbWrapper().get_notification_by_user_id(user_id)
+    notifications = await DbWrapper().get_notifications_by_user_id(user_id)
+    data = []
+    for notification in notifications:
+        new_notification = {
+            'notification_id': notification['notification_id'],
+            'text': notification['text']
+        }
+        data.append(notification_data)
+    response = generate_response(1, 'Success')
+    response['data'] = data
+    return web.json_response(data, status=200)
+
 
 @router.delete('/delete_notification_link')
-async def delete_notification_link(request: web.Request):
+async def soft_delete_notification_link(request: web.Request):
     body = await request.json()
     user_id = body['user_id']
     notification_id = body['notification_id']
     try:
-        await DbWrapper().unbind_notification( int(user_id), int(notification_id))
+        await DbWrapper().unbind_notification(int(user_id), int(notification_id))
     except Exception as e:
         logger.exception('Exception during delete_notification_link:')
         response = utils.generate_response(0, 'Failed to delete notification link')

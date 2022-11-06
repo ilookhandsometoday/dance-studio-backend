@@ -83,9 +83,11 @@ class DbWrapper(object, metaclass=SingletonMeta):
                     f'delete from public.users_sessions where user_id = {user_id} and session_id = {session_id}')
 
     @classmethod
-    async def add_notification(cls, text: str = '', misc: str = ''):
+    async def add_notification(cls, text: str = '', misc: str = '', session_start_time: int = None):
+        session_start_time_str = str(session_start_time) if session_start_time else 'NULL'
         result = await cls._pool.fetchval(
-            f"insert into public.notifications (n_text, misc) values('{text}', {misc}) returning notification_id;")
+            f"insert into public.notifications (n_text, misc, session_start_time) values('{text}', {misc}, "
+            f"{session_start_time_str}) returning notification_id;")
         return result
 
     @classmethod
@@ -99,13 +101,32 @@ class DbWrapper(object, metaclass=SingletonMeta):
                     'select user_id from public.sessions inner join public.users_sessions on '
                     'public.sessions.session_id = public.users_sessions.session_id;')
         return result
+    @classmethod
+    async def soft_delete_notification_bind(cls, user_id: int, notification_id: int):
+        await cls._pool.execute(f"update notifications_users set sent = TRUE where user_id = {user_id} "
+                                f"and notification_id = {notification_id};")
 
     @classmethod
-    async def unbind_notification(cls, user_id, notification_id):
-        await cls._pool.execute(
-                    f"delete from notifications_users where user_id = '{user_id}' and notification_id = '{notification_id}';")
-    @classmethod
-    async def get_notification_by_user_id(cls, user_id: int):
+    async def get_notifications_by_user_id(cls, user_id: int):
         result = await cls._pool.fetch(f"select * from notifications n inner join notifications_users nu on "
-                                       f"nu.notification_id = n.notification_id where user_id = {user_id};")
+                                       f"nu.user_id = n.user_id where user_id = {user_id} and sent = FALSE;")
+        return result
+
+    @classmethod
+    async def delete_notification(cls, notification_id: int):
+        await cls._pool.execute(f"delete from notifications where notification_id = {notification_id};")
+
+    @classmethod
+    async def get_notifications(cls):
+        result = await cls._pool.fetch("select * from notifications;")
+        return result
+
+    @classmethod
+    async def get_notification_by_text(cls, text: str):
+        result = await cls._pool.fetchrow(f"select * from notifications where n_text = '{text}';")
+        return result
+
+    @classmethod
+    async def get_users_bound_to_notification(cls, notification_id: int):
+        result = await cls._pool.fetch(f"select * from notifications_users where notification_id = {notification_id};")
         return result

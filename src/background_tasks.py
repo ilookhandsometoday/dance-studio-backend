@@ -9,21 +9,35 @@ async def set_notifications(app: web.Application):
     try:
         while True:
             try:
-                connection_pool = app['ps_connection_pool']
+                await notifications_cleanup(app)
                 result = await DbWrapper().get_all_sessions()
                 for session in result:
-                    if int(time.time()) - int(session['session_start']) <= 3600:
+                    if  0 < int(session['session_start']) - int(time.time()) <= 3600:
                         text = f'Скоро начнётся тренировка {session["session_name"]}, время начала занятия: {session["session_start"]}.'
-                        notification_id = await DbWrapper().add_notification(text=text)
-                        users = await DbWrapper().get_sessions_by_user(int(session['session_id']))
-                        for user in users:
-                            await DbWrapper().bind_notification(user['user_id'], session['session_id'])
+                        notification_by_text = await DbWrapper.get_notification_by_text(text)
+                        if not notification_by_text:
+                            notification_id = await DbWrapper().add_notification(text=text, session_start_time=session['session_start'])
+                        else:
+                            notification_id = notification_by_text['notification_id']
 
-                await asyncio.sleep(900)
+                        users_bound_to_notification = await DbWrapper().get_users_bound_to_notification(int(notification_id))
+                        user_ids_bound_to_notification = [int(binding['user_id']) for bindings in users_bound_to_notification]
+                        users = await DbWrapper().get_user_ids_by_session(int(session['session_id']))
+                        for user in users:
+                            if not int(user['user_id']) in user_ids_bound_to_notification:
+                                await DbWrapper().bind_notification(user['user_id'], session['session_id'])
+                await asyncio.sleep(600)
             except Exception as e:
                 logger.exception('An exception has occured during set_notifications:')
     except asyncio.CancelledError:
         raise
+
+async def notifications_cleanup(app: web.Application):
+    notifications = await DbWrapper().get_notifications()
+    for notification in notifications:
+        if int(notification['session_start_time']) < int(time.time()):
+            await DbWrapper.delete_notification(notification(int(notification_id)))
+
 
 
 

@@ -1,7 +1,7 @@
 import asyncio
 import sys
 import asyncpg
-from middlewares import validation_middleware
+from middlewares import validation_middleware, error_middleware
 from aiohttp import web, ClientSession
 from routes import router
 from config import get_config
@@ -19,6 +19,7 @@ def init_app():
     app = web.Application()
 
     app.add_routes(router)
+    app.middlewares.append(error_middleware)
     app.middlewares.append(validation_middleware)
 
     app.on_startup.append(on_startup)

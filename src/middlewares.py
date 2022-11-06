@@ -1,8 +1,10 @@
 import asyncpg
 import logging
+import utils
 from aiohttp import web
 from utils import generate_response
 from db_wrapper import DbWrapper
+from config import logger
 
 async def is_token_valid(user_id, token_to_compare):
     token_from_db = await DbWrapper().get_token(user_id)
@@ -59,4 +61,13 @@ async def validation_middleware(request: web.Request, handler):
             # really make sense
             return web.json_response(body='Access denied', status=403)
 
+
+@web.middleware
+async def error_middleware(request: web.Request, handler):
+    try:
+        return await handler(request)
+    except:
+        logger.exception('Unexpected exception:')
+        response = utils.generate_response(0, 'Failed')
+        return web.json_response(data=response, status=500)
 
