@@ -150,7 +150,7 @@ async def get_sessions_by_uid(request: web.Request):
 @router.get('/get_notifications_by_uid')
 async def get_notifications_by_uid(request: web.Request):
     uid = request.headers['X-User-Id']
-    notifications = await DbWrapper().get_notifications_by_user_id(user_id)
+    notifications = await DbWrapper().get_notifications_by_user_id(uid)
     data = []
     for notification in notifications:
         new_notification = {
