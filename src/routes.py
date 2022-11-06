@@ -155,7 +155,7 @@ async def get_notifications_by_uid(request: web.Request):
     for notification in notifications:
         new_notification = {
             'notification_id': notification['notification_id'],
-            'text': notification['text']
+            'text': notification['n_text']
         }
         data.append(notification_data)
     response = utils.generate_response(1, 'Success')
