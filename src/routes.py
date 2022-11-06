@@ -167,7 +167,7 @@ async def get_notifications_by_uid(request: web.Request):
 @router.delete('/delete_notification_link')
 async def soft_delete_notification_link(request: web.Request):
     body = await request.json()
-    user_id = body['user_id']
+    user_id = request.headers['user_id']
     notification_id = body['notification_id']
     try:
         await DbWrapper().unbind_notification(int(user_id), int(notification_id))
