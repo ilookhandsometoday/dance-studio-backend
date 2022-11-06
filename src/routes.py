@@ -160,7 +160,7 @@ async def get_notifications_by_uid(request: web.Request):
         data.append(notification_data)
     response = utils.generate_response(1, 'Success')
     response['data'] = data
-    return web.json_response(data, status=200)
+    return web.json_response(response, status=200)
 
 
 @router.delete('/delete_notification_link')
