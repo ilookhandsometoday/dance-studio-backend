@@ -1,6 +1,8 @@
 import asyncio
 import sys
 import asyncpg
+from contextlib import suppress
+from background_tasks import set_notifications
 from middlewares import validation_middleware, error_middleware
 from aiohttp import web, ClientSession
 from routes import router
@@ -8,10 +10,13 @@ from config import get_config
 from db_wrapper import DbWrapper
 
 async def on_startup(app: web.Application):
-    pass
+    app['set_notifications'] = asyncio.create_task(set_notifications(app))
 
 async def on_shutdown(app: web.Application):
     await DbWrapper().cleanup()
+    app['set_notifications'].cancel()
+    with suppress(asyncio.CancelledError):
+        await app['set_notificaions']
 
 def init_app():
     host, port, postgres_conn = get_config()
