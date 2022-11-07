@@ -21,7 +21,7 @@ async def set_notifications(app: web.Application):
                             notification_id = notification_by_text['notification_id']
 
                         users_bound_to_notification = await DbWrapper().get_users_bound_to_notification(int(notification_id))
-                        user_ids_bound_to_notification = [int(binding['user_id']) for bindings in users_bound_to_notification]
+                        user_ids_bound_to_notification = [int(binding['user_id']) for binding in users_bound_to_notification]
                         users = await DbWrapper().get_user_ids_by_session(int(session['session_id']))
                         for user in users:
                             if not int(user['user_id']) in user_ids_bound_to_notification:
