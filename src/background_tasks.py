@@ -25,7 +25,7 @@ async def set_notifications(app: web.Application):
                         users = await DbWrapper().get_user_ids_by_session(int(session['session_id']))
                         for user in users:
                             if not int(user['user_id']) in user_ids_bound_to_notification:
-                                await DbWrapper().bind_notification(user['user_id'], session['session_id'])
+                                await DbWrapper().bind_notification(user['user_id'], notification_id)
                 await asyncio.sleep(600)
             except Exception as e:
                 logger.exception('An exception has occured during set_notifications:')
