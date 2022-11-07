@@ -13,7 +13,7 @@ async def set_notifications(app: web.Application):
                 result = await DbWrapper().get_all_sessions()
                 for session in result:
                     if  0 < int(session['session_start']) - int(time.time()) <= 3600:
-                        text = f'Скоро начнётся тренировка {session["session_name"]}, время начала занятия: {session["session_start"]}.'
+                        text = f'Скоро начнётся тренировка {session["session_name"]}, время начала занятия: '
                         notification_by_text = await DbWrapper.get_notification_by_text(text)
                         if not notification_by_text:
                             notification_id = await DbWrapper().add_notification(text=text, session_start_time=session['session_start'])

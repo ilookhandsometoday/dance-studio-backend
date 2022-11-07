@@ -154,28 +154,16 @@ async def get_notifications_by_uid(request: web.Request):
     data = []
     for notification in notifications:
         new_notification = {
-            'notification_id': notification['notification_id'],
-            'text': notification['n_text']
+            'text': notification['n_text'],
+            'session_start': notification['session_start_time']
         }
+
+        await DbWrapper().soft_delete_notification_bind(int(uid), int(notification['notification_id']))
         data.append(new_notification)
     response = utils.generate_response(1, 'Success')
     response['data'] = data
     return web.json_response(response, status=200)
 
-
-@router.delete('/delete_notification_link')
-async def soft_delete_notification_link(request: web.Request):
-    body = await request.json()
-    user_id = request.headers['user_id']
-    notification_id = body['notification_id']
-    try:
-        await DbWrapper().unbind_notification(int(user_id), int(notification_id))
-    except Exception as e:
-        logger.exception('Exception during delete_notification_link:')
-        response = utils.generate_response(0, 'Failed to delete notification link')
-        return web.Response(response, status=500)
-
-    return web.Response(response, status=200)
 
 @router.get('/ping')
 async def ping(request: web.Request):
