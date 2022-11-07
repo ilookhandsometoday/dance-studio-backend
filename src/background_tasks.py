@@ -36,7 +36,7 @@ async def notifications_cleanup(app: web.Application):
     notifications = await DbWrapper().get_notifications()
     for notification in notifications:
         if int(notification['session_start_time']) < int(time.time()):
-            await DbWrapper.delete_notification(notification(int(notification_id)))
+            await DbWrapper.delete_notification(notification['notification_id'])
 
 
 
