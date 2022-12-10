@@ -131,6 +131,7 @@ class DbWrapper(object, metaclass=SingletonMeta):
     @classmethod
     async def get_notification_by_session_id(cls, session_id: int):
         result = await cls._pool.fetchrow(f"select * from notifications n where n.session_id = {session_id};")
+        return result
 
     @classmethod
     async def get_users_bound_to_notification(cls, notification_id: int):
