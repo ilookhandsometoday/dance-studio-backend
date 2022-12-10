@@ -98,13 +98,14 @@ async def sign_for_session(request:web.Request):
 
 
 @router.post('/unsign_from_session')
-async def unsign_for_session(request: web.Request):
+async def unsign_from_session(request: web.Request):
 
     body = await request.json()
     session_id = int(body.get('session_id'))
     uid = request.headers['X-User-Id']
-
+    notification = await DbWrapper().get_notification_by_session_id(session_id)
     await DbWrapper().unsign_from_session(session_id = session_id, user_id=uid)
+    await DbWrapper().delete_notification_bind(uid, notification['notification_id'])
 
     return web.Response(status=200)
 
@@ -155,7 +156,7 @@ async def get_notifications_by_uid(request: web.Request):
     for notification in notifications:
         new_notification = {
             'text': notification['n_text'],
-            'session_start': notification['session_start_time']
+            'session_start': notification['session_start']
         }
 
         await DbWrapper().soft_delete_notification_bind(int(uid), int(notification['notification_id']))

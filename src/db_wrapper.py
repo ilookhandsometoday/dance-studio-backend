@@ -83,11 +83,11 @@ class DbWrapper(object, metaclass=SingletonMeta):
                     f'delete from public.users_sessions where user_id = {user_id} and session_id = {session_id}')
 
     @classmethod
-    async def add_notification(cls, text: str = '', misc: str = '', session_start_time: int = None):
+    async def add_notification(cls, session_id ,text: str = '', misc: str = ''):
         session_start_time_str = str(session_start_time) if session_start_time else 'NULL'
         result = await cls._pool.fetchval(
-            f"insert into public.notifications (n_text, misc, session_start_time) values('{text}', '{misc}', "
-            f"{session_start_time_str}) returning notification_id;")
+            f"insert into public.notifications (n_text, misc, session_id) values('{text}', '{misc}', "
+            f"{session_id}) returning notification_id;")
         return result
 
     @classmethod
@@ -107,8 +107,15 @@ class DbWrapper(object, metaclass=SingletonMeta):
                                 f"and notification_id = {notification_id};")
 
     @classmethod
+    async def delete_notification_bind(cls, user_id: int, notification_id: int):
+        await cls._pool.execute(f"delete from notifications_users where user_id = {user_id} and "
+                                f"notification_id = {notification_id};")
+
+    @classmethod
     async def get_notifications_by_user_id(cls, user_id: int):
-        result = await cls._pool.fetch(f"select * from notifications n inner join notifications_users nu on "
+        result = await cls._pool.fetch(f"select notification_id, n_text, session_start from notifications n "
+                                       f"inner join sessions s on n.session_id = s.session_id "
+                                       f"inner join notifications_users nu on "
                                        f"nu.notification_id = n.notification_id inner join users u on nu.user_id = u.user_id "
                                        f"where nu.user_id = {user_id} and sent = FALSE;")
         return result
@@ -123,9 +130,8 @@ class DbWrapper(object, metaclass=SingletonMeta):
         return result
 
     @classmethod
-    async def get_notification_by_text(cls, text: str):
-        result = await cls._pool.fetchrow(f"select * from notifications where n_text = '{text}';")
-        return result
+    async def get_notification_by_session_id(cls, session_id: int):
+        result = await cls._pool.fetchrow(f"select * from notifications n where n.session_id = {session_id};")
 
     @classmethod
     async def get_users_bound_to_notification(cls, notification_id: int):
