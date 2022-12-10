@@ -16,7 +16,7 @@ async def on_shutdown(app: web.Application):
     await DbWrapper().cleanup()
     app['set_notifications'].cancel()
     with suppress(asyncio.CancelledError):
-        await app['set_notificaions']
+        await app['set_notifications']
 
 def init_app():
     host, port, postgres_conn = get_config()
