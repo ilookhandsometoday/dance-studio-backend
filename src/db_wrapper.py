@@ -98,7 +98,7 @@ class DbWrapper(object, metaclass=SingletonMeta):
     async def get_user_ids_by_session(cls, session_id):
         result = await cls._pool.fetch(
                     'select user_id from public.sessions inner join public.users_sessions on '
-                    'public.sessions.session_id = public.users_sessions.session_id;')
+                    f'public.sessions.session_id = public.users_sessions.session_id where sessions.session_id = {session_id};')
         return result
     @classmethod
     async def soft_delete_notification_bind(cls, user_id: int, notification_id: int):
