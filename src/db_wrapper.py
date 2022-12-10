@@ -84,7 +84,6 @@ class DbWrapper(object, metaclass=SingletonMeta):
 
     @classmethod
     async def add_notification(cls, session_id ,text: str = '', misc: str = ''):
-        session_start_time_str = str(session_start_time) if session_start_time else 'NULL'
         result = await cls._pool.fetchval(
             f"insert into public.notifications (n_text, misc, session_id) values('{text}', '{misc}', "
             f"{session_id}) returning notification_id;")
