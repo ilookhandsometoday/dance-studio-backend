@@ -125,7 +125,7 @@ class DbWrapper(object, metaclass=SingletonMeta):
 
     @classmethod
     async def get_notifications(cls):
-        result = await cls._pool.fetch("select * from notifications;")
+        result = await cls._pool.fetch("select * from notifications n inner join sessions s on n.session_id = s.session_id;")
         return result
 
     @classmethod
