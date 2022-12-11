@@ -134,6 +134,7 @@ async def get_sessions_by_uid(request: web.Request):
     logger.info(f'Get sessions by uid: {time.time()-start}')
     response = utils.generate_response(1, 'Session list returned')
     response['data'].update({'sessions': []})
+    start_loop = time.time()
     for session in result:
         specializations = await DbWrapper().get_instructor_specs(session['instructor_id'])
         response['data']['sessions'].append({
@@ -147,6 +148,8 @@ async def get_sessions_by_uid(request: web.Request):
             'lastname': session['lastname'],
             'specialization': [record['spec_name'] for record in specializations]
         })
+
+    logger.info(f'Get instructors specs: {time.time()-start_loop}')
 
     return web.json_response(response, status=200)
 
