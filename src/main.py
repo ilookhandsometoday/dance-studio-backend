@@ -39,4 +39,4 @@ if __name__ == '__main__':
     loop = asyncio.get_event_loop()
     app, host, port, postgres_conn = init_app()
     loop.run_until_complete(DbWrapper().prepare(postgres_conn))
-    web.run_app(app, host=host, port=port, loop=loop)
+    web.run_app(app, host=host, port=port, loop=loop, access_log_format='%a %t "%r" %s %b "%{Referer}i" "%{User-Agent}i" %Tf')
