@@ -129,7 +129,9 @@ async def get_instructors(request: web.Request):
 async def get_sessions_by_uid(request: web.Request):
     body = await request.json()
     uid = int(request.headers['X-User-Id'])
+    start = time.time()
     result = await DbWrapper().get_sessions_by_user(uid)
+    logger.info(f'Get sessions by uid: {time.time()-start}')
     response = utils.generate_response(1, 'Session list returned')
     response['data'].update({'sessions': []})
     for session in result:
