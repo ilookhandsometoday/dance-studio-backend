@@ -120,6 +120,11 @@ class DbWrapper(object, metaclass=SingletonMeta):
         return result
 
     @classmethod
+    async def get_cancellation_notifications(cls):
+        result = await cls._pool.fetch(f"select n.notification_id, n_text, misc, session_id from notifications n;")
+        return result
+
+    @classmethod
     async def delete_notification(cls, notification_id: int):
         await cls._pool.execute(f"delete from notifications where notification_id = {notification_id};")
 

@@ -99,10 +99,10 @@ async def sign_for_session(request:web.Request):
 
 @router.post('/unsign_from_session')
 async def unsign_from_session(request: web.Request):
-
     body = await request.json()
     session_id = int(body.get('session_id'))
     uid = request.headers['X-User-Id']
+
     notification = await DbWrapper().get_notification_by_session_id(session_id)
     await DbWrapper().unsign_from_session(session_id = session_id, user_id=uid)
     await DbWrapper().delete_notification_bind(uid, notification['notification_id'])
@@ -156,7 +156,21 @@ async def get_sessions_by_uid(request: web.Request):
 @router.get('/get_notifications_by_uid')
 async def get_notifications_by_uid(request: web.Request):
     uid = request.headers['X-User-Id']
+    cancellation_notifications = await DbWrapper().get_cancellation_notifications()
+    modified_cancellation_notifications = []
+    for cancellation_notification in cancellation_notifications:
+        # make it so into misc a string is written, comprised of three values separated by SPLT_22
+        session_start, session_name, session_place = str(cancellation_notification['misc']).split('SPLT_22')
+        text_template = cancellation_notification['n_text']
+        additional_text = f'{session_name}, адрес: {session_place}. Тренировка должна была начаться '
+
+        modified_cancellation_notifications.append({'n_text': text_template + ' ' + additional_text, 'session_start': session_start})
     notifications = await DbWrapper().get_notifications_by_user_id(uid)
+
+    for notification in notifications:
+        await DbWrapper().soft_delete_notification_bind(int(uid), int(notification['notification_id']))
+
+    notifications.extend(cancellation_notifications)
     data = []
     for notification in notifications:
         new_notification = {
@@ -164,7 +178,6 @@ async def get_notifications_by_uid(request: web.Request):
             'session_start': notification['session_start']
         }
 
-        await DbWrapper().soft_delete_notification_bind(int(uid), int(notification['notification_id']))
         data.append(new_notification)
     response = utils.generate_response(1, 'Success')
     response['data'] = data
