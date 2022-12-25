@@ -170,10 +170,9 @@ async def get_notifications_by_uid(request: web.Request):
     for notification in notifications:
         await DbWrapper().soft_delete_notification_bind(int(uid), int(notification['notification_id']))
 
-    notifications.extend(cancellation_notifications)
+    notifications.extend(modified_cancellation_notifications)
     data = []
     for notification in notifications:
-        logger.info(notification)
         new_notification = {
             'text': notification['n_text'],
             'session_start': notification['session_start']
