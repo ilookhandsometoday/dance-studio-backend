@@ -173,6 +173,7 @@ async def get_notifications_by_uid(request: web.Request):
     notifications.extend(cancellation_notifications)
     data = []
     for notification in notifications:
+        logger.info(notification)
         new_notification = {
             'text': notification['n_text'],
             'session_start': notification['session_start']
