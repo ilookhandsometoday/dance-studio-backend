@@ -164,7 +164,7 @@ async def get_notifications_by_uid(request: web.Request):
         text_template = cancellation_notification['n_text']
         additional_text = f'{session_name}, адрес: {session_place}. Тренировка должна была начаться '
 
-        modified_cancellation_notifications.append({'n_text': text_template + ' ' + additional_text, 'session_start': session_start})
+        modified_cancellation_notifications.append({'n_text': text_template + ' ' + additional_text, 'session_start': int(session_start)})
     notifications = await DbWrapper().get_notifications_by_user_id(uid)
 
     for notification in notifications:
